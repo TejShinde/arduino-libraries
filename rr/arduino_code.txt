@@ -1,0 +1,74 @@
+// include the library code:
+#include <LiquidCrystal.h>
+#include <SoftwareSerial.h>
+
+// initialize the library by associating any needed LCD interface pin
+// with the arduino pin number it is connected to
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+
+char Received = 0;
+String password;
+
+int count = 0;
+int flag = 0;
+
+SoftwareSerial Bluetooth(9, 8);
+
+void setup() {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  Bluetooth.begin(9600);
+  Serial.begin(9600);
+  lcd.clear();
+}
+int go = 0;
+void loop() {
+
+  while (Bluetooth.available() > 0)
+  {
+    delay(10);
+    Received = Bluetooth.read();
+    if (Received == '*' || Received == 0x0D || Received == 0x0A)
+    {
+      break;
+    }
+    password += Received;
+    go = 1;
+  }
+  
+  if (go == 1)
+  {
+    lcd.clear();
+    if (password == "infinity")
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Correct Password");
+      Bluetooth.println("password received");
+    }
+    else
+    {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("Wrong Password");
+      count += 1;
+      flag = 1;
+      password="";
+    }
+    go = 0;
+  }
+  
+    if(count==5 && flag==1)
+    {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("Plz try again");
+      lcd.setCursor(0,1);
+      lcd.print("after 5 sec");
+      delay(5000);
+      count=0;
+      flag=0;
+    }
+  delay(500);
+}
